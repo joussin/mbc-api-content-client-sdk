@@ -1,5 +1,5 @@
 {
-    "name": "joussin/sdk-rest-api",
+    "name": "joussin/mbc-api-content-client-sdk",
 
     "type": "package",
     "require": {
