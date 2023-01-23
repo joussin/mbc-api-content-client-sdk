@@ -1,0 +1,24 @@
+{
+    "name": "joussin/sdk-rest-api",
+
+    "type": "package",
+    "require": {
+        "php": "^8.0.2",
+        "guzzlehttp/guzzle": "^7.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "SdkRestApi\\": "./"
+        }
+    },
+
+    "description": "base laravel project",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Joussin Stéphane",
+            "email": "joussin@live.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
