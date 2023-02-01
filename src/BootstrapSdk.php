@@ -10,5 +10,7 @@ class BootstrapSdk
     public function __construct()
     {
         $routes = ApiContentSdk::getRouteEntity()->all();
+
+        dd($routes);
     }
 }
