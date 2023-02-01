@@ -4,9 +4,10 @@ namespace MbcApiContentSdk\Facades;
 
 
 use Illuminate\Support\Facades\Facade;
+use MbcApiContentSdk\Entity\Route\RouteEntityInterface;
 
 /**
- *
+ * @method static RouteEntityInterface getRouteEntity()
  * @see \MbcApiContentSdk\Services\ApiSdkService;
  */
 class ApiContentSdk extends Facade
