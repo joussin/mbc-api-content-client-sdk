@@ -1,24 +1,55 @@
 {
-    "name": "joussin/sdk-rest-api",
+    "name": "joussin/mbc-api-content-client-sdk",
 
-    "type": "package",
-    "require": {
-        "php": "^8.0.2",
-        "guzzlehttp/guzzle": "^7.2"
-    },
-    "autoload": {
-        "psr-4": {
-            "SdkRestApi\\": "./"
-        }
-    },
-
-    "description": "base laravel project",
-    "license": "proprietary",
+    "description": "Api content SDK",
+    "license": "MIT",
+    "keywords": [
+        "mbc-api-content",
+        "sdk"
+    ],
+    "homepage": "https://github.com/joussin/mbc-api-content-client-sdk",
     "authors": [
         {
             "name": "Joussin Stéphane",
-            "email": "joussin@live.com"
+            "email": "joussin@live.com",
+            "homepage": "https://github.com/joussin/",
+            "role": "Developer"
         }
     ],
-    "minimum-stability": "dev"
+
+    "require": {
+        "php": "^8.0.2",
+
+        "guzzlehttp/guzzle": "^7.2"
+
+
+
+    },
+    "require-dev": {
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": false,
+            "phpstan/extension-installer": false
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "MbcApiContentSdk\\Providers\\PackageServiceProvider"
+            ]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "MbcApiContentSdk\\": "./src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+        }
+    },
+    "scripts": {
+    }
 }

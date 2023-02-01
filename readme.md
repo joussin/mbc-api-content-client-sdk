@@ -1,171 +1,170 @@
-PACKAGE COMPOSER:
-
-php package for a sdk rest api abstraction
-
-package name: joussin/sdk-rest-api
-
-version : dev-release ou tag 0.0.2
-
-"joussin/sdk-rest-api": "dev-release"
-
-"joussin/sdk-rest-api": "0.0.2" ( release github with tag 0.0.2 )
-
-composer.json du package:
-
-{
-"name": "joussin/sdk-rest-api",
-
-    "type": "package",
-    "require": {
-        "php": "^8.0.2",
-        "guzzlehttp/guzzle": "^7.2"
-    },
-    "autoload": {
-        "psr-4": {
-            "SdkRestApi\\": "./"
-        }
-    },
-
-    "description": "base laravel project",
-    "license": "proprietary",
-    "authors": [
-        {
-            "name": "Joussin Stéphane",
-            "email": "joussin@live.com"
-        }
-    ]
-}
+## Installation
 
 
-package namespace:
+You can install the package via composer:
 
-    SdkRestApi/
-
-package implementations:
-
-    SdkRestApi/Infrastructure/Providers/Laravel/PackageServiceProvider
-
-
-
-Pour ajouter ce package à un projet. Dans le composer.json du projet:
-    
-    "repositories": [
+```bash
+"repositories": [
     
         {
         "type": "vcs",
-        "url": "https://github.com/joussin/sdk-rest-api.git"
+        "url": "https://github.com/joussin/mbc-api-content-client-sdk.git"
         }
     
-    ],
-    
-    
+    ]
+```
+Choose version by tag:
+```bash
     "require": {
-     ...
-        "joussin/sdk-rest-api": "0.0.2"
-    },
-    
-    
-si besoin:
-    
-        "autoload": {
-            "psr-4": {
-                ...
-                "SdkRestApi\\": "sdk-rest-api/",
+        "joussin/mbc-api-content-client-sdk": "0.0.2"
+    }
+```
+Or branch:
+```bash
+    "require": {
+        "joussin/mbc-api-content-client-sdk": "dev-master"
+    }
+```
 
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
+```bash
+    composer update
+```
 
-GITHUB: configuration projet
+After the package is installed, publish:
+- the config file
+
+```bash
+php artisan vendor:publish --provider=MbcApiContentSdk\\\Providers\\PackageServiceProvider
+```
+
+## Configuration
+
+config/mbc-api-content-client-sdk.php
+    - api url
+    - api credentials
+    - ...
+
+```php
+return [
+    'api' => [
+        'base_url' => '',
+        'credentials' => [
+            'client_id' => '',
+            'client_secret' => '',
+        ],
+
+        'routes' => [
+            'prefix' => 'api/v1'
+        ]
+    ],
+];
+```
 
 
-clef ssh de deploiement par projet:
+## Boot sdk
 
-generate key:
-
-    ssh-keygen -t ed25519 -C "email@domain.com"
-    
-
-
-add key to agent:
-
-    eval "$(ssh-agent -s)"
-    
-    sudo ssh-add --apple-use-keychain ~/.ssh/id_ed25519_sdk_rest
-    sudo ssh-add --apple-use-keychain ~/.ssh/id_ed25519_laravel_package
-
-
-
-read key: 
-
-    cat /Users/waripay/.ssh/id_ed25519_sdk_rest.pub
-
-liste keys ssh-agent:
-    ssh-add -l
-
-liste keys files:
-    ls -l ~/.ssh
-
-ssh conf:
-
-    open ~/.ssh/config
-    cat ~/.ssh/config
+```php
+use Illuminate\Support\ServiceProvider;
    
+    class AppServiceProvider extends ServiceProvider
+    {
+        public function boot(\MbcApiContentSdk\BootstrapSdk $bootstrap)
+        {
+            $bootstrap->init();
+        }
+    }
+```
 
-git conf:
-
-    cat .git/config
-
-1 repo: 
-
-Host *.github.com
-  AddKeysToAgent yes
-  UseKeychain yes
-  IdentityFile=cat /Users/waripay/.ssh/id_ed25519.pub
-
-
-OU pour 2 repo:
-
-Host sdk-rest-api
-  HostName github.com
-  AddKeysToAgent yes
-  UseKeychain yes
-  IdentityFile=~/.ssh/id_ed25519_sdk_rest
-
-Host laravel-package
-  HostName github.com
-  AddKeysToAgent yes
-  UseKeychain yes
-  IdentityFile=~/.ssh/id_ed25519_laravel_package
+## Liste des routes:
+``` bash
+php artisan route:list  
+php artisan route:list --except-vendor
+```
 
 
+## Facades
+
+ApiSdkFacade : ApiSdkService
+RouterFacade : RouterService
+```php
 
 
-add remote url with host:
+ApiSdkFacade::Route->search()
+ApiSdkFacade::Route->getAll()
+ApiSdkFacade::Route->getById()
+ApiSdkFacade::Route->getByUri()
 
-clone:
+ApiSdkFacade::Page->search()
+ApiSdkFacade::Page->getAll()
+ApiSdkFacade::Page->getById()
+ApiSdkFacade::Page->getByRoute()
+ApiSdkFacade::Page->bladeTemplateName()
 
-    git clone git@<myHost>:aprilmintacpineda/chat-with-people-backend.git
-    
-    git clone git@sdk-rest-api:joussin/sdk-rest-api.git
-
-
-add remote url:
-
-    git remote add origin git@<myHost>:aprilmintacpineda/chat-with-people-backend.git
-    git remote add origin git@sdk-rest-api:joussin/sdk-rest-api.git
-
-
-voir les remotes url:
-
-    git remote -v
-    git config --get remote.origin.url
-
-modifier :
+ApiSdkFacade::PageContent->search()
+ApiSdkFacade::PageContent->getAll()
+ApiSdkFacade::PageContent->getById()
+ApiSdkFacade::PageContent->getByName()
+ApiSdkFacade::PageContent->getByPage()
 
 
-    git remote set-url origin git@sdk-rest-api:joussin/sdk-rest-api.git
-    git remote set-url origin git@laravel-package:joussin/laravel-package.git
+RouterFacade::routesCollection()
+RouterFacade::staticRoutesCollection()
+RouterFacade::requestHandlerCallback()
+RouterFacade::contentParser()
 
+```
 
+## Architecture
 
+ - Laravel Provider
+
+    - ApplicationBootstrap
+
+        - RestClient  (inject Guzzle client & config file)
+            - call api
+
+        - ApiSdkService: api call ReadOnly (inject RestClient)
+
+            - Entity/Route
+                - search by filter (RouteEntity or Collection)
+                - get all routes (RouteEntityCollection)
+                - get one route by id (RouteEntity)
+                - get one route by url (RouteEntity)
+                
+            - Entity/Page
+                - search by filter (PageEntity or Collection)
+                - get all pages (PageEntityCollection)
+                - get one page by id (PageEntity)
+
+            - Entity/PageContent
+                - search by filter (PageContentEntity or Collection)
+                - get all PageContent (PageContentEntityCollection)
+                - get one PageContent by id (PageContentEntity)
+                - get one PageContent by name (PageContentEntity)
+
+            - Entity/Synchronization_Api_with_Frontal (SynchronizationEntity)
+                - expose endpoint or broadcast system or queue or ... to listen for api update
+                    - if backoffice or api update Route or Page or PageContent, api dispatch event to
+                      exposed endpoint
+                    - SynchroService handle api update event
+
+        - RouterService   (inject SdkService )
+            - routes collection : RouteEntityCollection
+            - handle server request
+                - from dynamic uri
+                - from static uri
+            - Content Parser / Render HTML
+                - SdkService::RouteEntity -> SdkService::PageEntity -> SdkService::pageContentsEntity
+                    - server request to html
+                    - blade template generator
+
+        - ExportService - spatie/laravel-export (CONSOLE COMMAND) (inject RouterService)
+            - generate static files from RouterService::routeEntityCollection
+
+        - SynchronizationService  (inject SdkService - ExportService to update static files)
+              - handle exposed endpoint request : Entity/Synchronization_Api_with_Frontal
+              - Export new files via ExportService: 
+                - update route list
+                - update route page
+                - update route pageContent
+                - update static content
