@@ -5,12 +5,14 @@ namespace MbcApiContentSdk\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
+
 /**
  *
- * @see \MbcApiContentSdk\Services\ApiSdkService;
+ * @see \MbcApiContentSdk\Services\RouterService;
  */
-class ApiSdkFacade extends Facade
+class ApiContentSdkRouter extends Facade
 {
+
     /**
      * Get the registered name of the component.
      *
@@ -18,6 +20,6 @@ class ApiSdkFacade extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return 'sdk_service_facade_accessor';
+        return 'router_service_facade_accessor';
     }
 }
