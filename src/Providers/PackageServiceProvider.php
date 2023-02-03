@@ -6,7 +6,9 @@ namespace MbcApiContentSdk\Providers;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Support\ServiceProvider;
-use MbcApiContentSdk\BootstrapSdk;
+use MbcApiContent\Providers\RouteServiceProvider;
+use MbcApiContentSdk\ApplicationApiContentSdk;
+use MbcApiContentSdk\ApplicationApiContentSdkInterface;
 use MbcApiContentSdk\Entity\Page\PageEntity;
 use MbcApiContentSdk\Entity\Page\PageEntityInterface;
 use MbcApiContentSdk\Entity\PageContent\PageContentEntity;
@@ -17,14 +19,10 @@ use MbcApiContentSdk\Entity\Synchronization\SynchronizationEntity;
 use MbcApiContentSdk\Entity\Synchronization\SynchronizationEntityInterface;
 use MbcApiContentSdk\RestClient\RestClient;
 use MbcApiContentSdk\RestClient\RestClientInterface;
-use MbcApiContentSdk\Services\ApiSdkService;
-use MbcApiContentSdk\Services\ApiSdkServiceInterface;
-use MbcApiContentSdk\Services\ExportService;
-use MbcApiContentSdk\Services\ExportServiceInterface;
+use MbcApiContentSdk\Services\ApiContentService;
+use MbcApiContentSdk\Services\ApiContentServiceInterface;
 use MbcApiContentSdk\Services\RouterService;
 use MbcApiContentSdk\Services\RouterServiceInterface;
-use MbcApiContentSdk\Services\SynchronizationService;
-use MbcApiContentSdk\Services\SynchronizationServiceInterface;
 
 class PackageServiceProvider extends ServiceProvider
 {
@@ -37,10 +35,46 @@ class PackageServiceProvider extends ServiceProvider
     public function register()
     {
 
-        $this->app->singleton(BootstrapSdk::class, function($app){
-            return new BootstrapSdk();
+        $this->app->register(EventServiceProvider::class);
+        $this->app->register(RouteServiceProvider::class);
+
+        // INTEGRATION SDK
+        // permet d'intégrer le sdk à une app laravel
+        // via une instance obtenu avec ApplicationApiContentSdkInterface
+        // via la facacde ApiSdkFacade::
+        $this->app->singleton('api_content_sdk_facade_accessor', function ($app) {
+            return $app->make(ApplicationApiContentSdkInterface::class);
         });
 
+        $this->app->singleton(ApplicationApiContentSdkInterface::class, function($app){
+            return new ApplicationApiContentSdk();
+        });
+
+
+        // services de l'app
+
+        // recupere les resources de l'api
+        $this->app->bind(ApiContentServiceInterface::class, function($app){
+            return new ApiContentService(
+                $app->make(RouteEntityInterface::class),
+                $app->make(PageEntityInterface::class),
+                $app->make(PageContentEntityInterface::class),
+                $app->make(SynchronizationEntityInterface::class),
+            );
+        });
+
+
+        // créer un router grâce aux resources
+        $this->app->bind(RouterServiceInterface::class, function($app){
+            return new RouterService();
+        });
+
+
+
+
+
+
+        // client
         $this->app->bind(RestClientInterface::class, function($app){
             return new RestClient(
                 $app->make(ClientInterface::class),
@@ -55,42 +89,6 @@ class PackageServiceProvider extends ServiceProvider
             ]);
         });
 
-        $this->app->bind(ApiSdkServiceInterface::class, function($app){
-            return new ApiSdkService(
-                $app->make(RouteEntityInterface::class),
-                $app->make(PageEntityInterface::class),
-                $app->make(PageContentEntityInterface::class),
-                $app->make(SynchronizationEntityInterface::class),
-            );
-        });
-
-        $this->app->bind(RouterServiceInterface::class, function($app){
-            return new RouterService();
-        });
-
-
-        $this->app->bind(SynchronizationServiceInterface::class, function($app){
-            return new SynchronizationService();
-        });
-
-
-        $this->app->bind(ExportServiceInterface::class, function($app){
-            return new ExportService();
-        });
-
-
-        //
-
-        // ApiSdkFacade::
-        $this->app->singleton('sdk_service_facade_accessor', function ($app) {
-            return $app->make(ApiSdkServiceInterface::class);
-        });
-
-
-        // SdkFacade::
-        $this->app->singleton('router_service_facade_accessor', function ($app) {
-            return $app->make(RouterServiceInterface::class);
-        });
 
         // entity
 
@@ -119,6 +117,7 @@ class PackageServiceProvider extends ServiceProvider
         });
 
 
+        // config
 
         $this->mergeConfigFrom(
             file_exists( config_path('mbc-api-content-client-sdk.php') ) ? config_path('mbc-api-content-client-sdk.php') : (__DIR__ . './../../config/mbc-api-content-client-sdk.php') ,

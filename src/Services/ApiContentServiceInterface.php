@@ -7,7 +7,7 @@ use MbcApiContentSdk\Entity\PageContent\PageContentEntityInterface;
 use MbcApiContentSdk\Entity\Route\RouteEntityInterface;
 use MbcApiContentSdk\Entity\Synchronization\SynchronizationEntityInterface;
 
-interface ApiSdkServiceInterface
+interface ApiContentServiceInterface
 {
 
     /**

@@ -68,7 +68,7 @@ use Illuminate\Support\ServiceProvider;
    
     class AppServiceProvider extends ServiceProvider
     {
-        public function boot(\MbcApiContentSdk\BootstrapSdk $bootstrap)
+        public function boot(\MbcApiContentSdk\ApplicationApiContentSdk $bootstrap)
         {
             $bootstrap->init();
         }
@@ -85,82 +85,101 @@ php artisan route:list --except-vendor
 ## Facades
 
 ApiSdkFacade : ApiSdkService
-RouterFacade : RouterService
+
 ```php
 
 
 ApiSdkFacade::Route->search()
-ApiSdkFacade::Route->getAll()
-ApiSdkFacade::Route->getById()
-ApiSdkFacade::Route->getByUri()
-
-ApiSdkFacade::Page->search()
-ApiSdkFacade::Page->getAll()
-ApiSdkFacade::Page->getById()
-ApiSdkFacade::Page->getByRoute()
-ApiSdkFacade::Page->bladeTemplateName()
-
-ApiSdkFacade::PageContent->search()
-ApiSdkFacade::PageContent->getAll()
-ApiSdkFacade::PageContent->getById()
-ApiSdkFacade::PageContent->getByName()
-ApiSdkFacade::PageContent->getByPage()
-
 
 RouterFacade::routesCollection()
-RouterFacade::staticRoutesCollection()
-RouterFacade::requestHandlerCallback()
-RouterFacade::contentParser()
 
 ```
 
-## Architecture
 
- - Laravel Provider
 
-    - ApplicationBootstrap
 
-        - RestClient  (inject Guzzle client & config file)
-            - call api
+## Obtenir une instance du SDK:
 
-        - ApiSdkService: api call ReadOnly (inject RestClient)
+- Intégrer le sdk dans l'app laravel
 
-            - Entity/Route
-                - search by filter (RouteEntity or Collection)
-                - get all routes (RouteEntityCollection)
-                - get one route by id (RouteEntity)
-                - get one route by url (RouteEntity)
-                
-            - Entity/Page
-                - search by filter (PageEntity or Collection)
-                - get all pages (PageEntityCollection)
-                - get one page by id (PageEntity)
+    - récupérer une instance via le provider:
+      $instance = make ApplicationApiContentSdkInterface -> ApplicationApiContentSdk
+      $instance->API->...
 
-            - Entity/PageContent
-                - search by filter (PageContentEntity or Collection)
-                - get all PageContent (PageContentEntityCollection)
-                - get one PageContent by id (PageContentEntity)
-                - get one PageContent by name (PageContentEntity)
+    - via une Facade :
+      ApiContentSdkFacade::API->...
+      ApiContentSdkFacade::ROUTER->...
 
-            - Entity/Synchronization_Api_with_Frontal (SynchronizationEntity)
-                - expose endpoint or broadcast system or queue or ... to listen for api update
-                    - if backoffice or api update Route or Page or PageContent, api dispatch event to
-                      exposed endpoint
-                    - SynchroService handle api update event
+## Architecture SDK:
 
-        - RouterService   (inject SdkService )
-            - routes collection : RouteEntityCollection
-            - handle server request
-                - from dynamic uri
-                - from static uri
-            - Content Parser / Render HTML
-                - SdkService::RouteEntity -> SdkService::PageEntity -> SdkService::pageContentsEntity
-                    - server request to html
-                    - blade template generator
 
-        - ExportService - spatie/laravel-export (CONSOLE COMMAND) (inject RouterService)
-            - generate static files from RouterService::routeEntityCollection
+L'instance du sdk possède plusieurs instances de Services pour chacun de ses métiers.
 
+
+- RestClient :
+    - Métier : permettant la communication avec l'api content
+    - Dépendances : Guzzle client & config file
+
+
+- ApiContentService:
+    - Métier : Transforme les réponses du client en Objets (entity et entityCollection) facilement manipulable
+    - Dépendances : RestClient
+
+    - Example:
+
+      ApiContentSdkFacade::API->Route->all() : RouteEntityCollection
+      ApiContentSdkFacade::API->Route->id(1) : RouteEntity
+      ...
+      ApiContentSdkFacade::API->Page->all() : PageEntityCollection
+      ApiContentSdkFacade::API->Page->id(1) : PageEntity
+      ...
+      ApiContentSdkFacade::API->PageContent->all() : PageContentEntityCollection
+      ApiContentSdkFacade::API->PageContent->id(1) : PageContentEntity      
+      ...
+
+
+
+- RouterService
+    - Métier :
+        - Transforme RouteEntityCollection en routes laravel
+        - store ces routes dans le router de laravel avec le RouterMiddleware
+        - RouterMiddleware : handle server request et retourne une response html
+    - Dépendances : ApiContentService
+
+    - Example:
+      ApiContentSdkFacade::ROUTER->store( ApiContentSdkFacade::API->Route->all() )
+
+
+- ExportService : code & commande console
+    - Métier : exporte les routes laravel sous forme de routes statiques avec contenu html statique
+    - Dépendances :
+        - RouterService
+        - joussin/laravel-export : fork de spatie/laravel-export
+
+    - Example:
+        - code dans provider->boot() par ex:
+          ApiContentSdkFacade::EXPORT->paths( ApiContentSdkFacade::ROUTER->all() )
+
+        - commande:
+          php artisan export
+
+
+
+
+
+
+
+
+NOTES:
+
+
+    - Entity/Synchronization_Api_with_Frontal (SynchronizationEntity)
+        - expose endpoint or broadcast system or queue or ... to listen for api update
+            - if backoffice or api update Route or Page or PageContent, api dispatch event to
+                exposed endpoint
+            - SynchroService handle api update event
+
+            
         - SynchronizationService  (inject SdkService - ExportService to update static files)
               - handle exposed endpoint request : Entity/Synchronization_Api_with_Frontal
               - Export new files via ExportService: 

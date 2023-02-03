@@ -8,7 +8,7 @@ use MbcApiContentSdk\Entity\Route\RouteEntityInterface;
 use MbcApiContentSdk\Entity\Synchronization\SynchronizationEntityInterface;
 
 
-class ApiSdkService implements ApiSdkServiceInterface
+class ApiContentService implements ApiContentServiceInterface
 {
 
     protected RouteEntityInterface $routeEntity;

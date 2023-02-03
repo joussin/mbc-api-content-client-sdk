@@ -8,11 +8,10 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  *
- * @see \MbcApiContentSdk\Services\RouterService;
+ * @see \MbcApiContentSdk\ApplicationApiContentSdkInterface;
  */
-class ApiContentSdkRouter extends Facade
+class ApiContentSdkFacade extends Facade
 {
-
     /**
      * Get the registered name of the component.
      *
@@ -20,6 +19,6 @@ class ApiContentSdkRouter extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return 'router_service_facade_accessor';
+        return 'api_content_sdk_facade_accessor';
     }
 }
